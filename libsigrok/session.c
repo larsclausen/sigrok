@@ -373,8 +373,6 @@ SR_API int sr_session_stop(void)
 		if (dev->driver) {
 			if (dev->driver->dev_acquisition_stop)
 				dev->driver->dev_acquisition_stop(dev->driver_index, dev);
-			if (dev->driver->cleanup)
-				dev->driver->cleanup();
 		}
 	}
 
