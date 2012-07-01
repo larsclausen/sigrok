@@ -82,8 +82,7 @@ SR_API int sr_session_destroy(void)
 		return SR_ERR_BUG;
 	}
 
-	g_slist_free(session->devs);
-	session->devs = NULL;
+	sr_session_dev_remove_all();
 
 	/* TODO: Error checks needed? */
 
@@ -93,6 +92,12 @@ SR_API int sr_session_destroy(void)
 	session = NULL;
 
 	return SR_OK;
+}
+
+static void sr_dev_close(struct sr_dev *dev)
+{
+	if (dev->driver->dev_close)
+		dev->driver->dev_close(dev->driver_index);
 }
 
 /**
@@ -110,7 +115,7 @@ SR_API int sr_session_dev_remove_all(void)
 		return SR_ERR_BUG;
 	}
 
-	g_slist_free(session->devs);
+	g_slist_free_full(session->devs, (GDestroyNotify)sr_dev_close);
 	session->devs = NULL;
 
 	return SR_OK;
