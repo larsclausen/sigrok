@@ -480,6 +480,8 @@ struct sr_dev_driver {
 	int (*dev_acquisition_stop) (int dev_index, void *session_dev_id);
 };
 
+struct sr_session_source;
+
 struct sr_session {
 	/* List of struct sr_dev* */
 	GSList *devs;
@@ -488,16 +490,7 @@ struct sr_session {
 	GTimeVal starttime;
 	gboolean running;
 
-	unsigned int num_sources;
-
-	/* Both "sources" and "pollfds" are of the same size and contain pairs of
-	 * descriptor and callback function. We can not embed the GPollFD into the
-	 * source struct since we want to be able to pass the array of all poll
-	 * descriptors to g_poll.
-	 */
-	struct source *sources;
-	GPollFD *pollfds;
-	int source_timeout;
+	struct sr_session_source *source;
 };
 
 #include "proto.h"
