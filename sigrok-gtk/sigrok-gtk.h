@@ -46,5 +46,8 @@ GtkWidget *toolbar_init(GtkWindow *parent);
 /* icons.c */
 void icons_register(void);
 
+/* toolbar.c */
+void capture_done(void);
+
 #endif
 

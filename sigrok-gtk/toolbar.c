@@ -327,7 +327,7 @@ static void dev_set_probes(GtkAction *action, GtkWindow *parent)
 	gtk_widget_destroy(dialog);
 }
 
-static void capture_run(GtkAction *action, GObject *parent)
+static void capture_run(GtkToggleAction *action, GObject *parent)
 {
 	(void)action;
 
@@ -337,7 +337,12 @@ static void capture_run(GtkAction *action, GObject *parent)
 	gint i = gtk_combo_box_get_active(timeunit);
 	guint64 time_msec = 0;
 	guint64 limit_samples = 0;
-	
+
+	if (!gtk_toggle_action_get_active(action)) {
+		sr_session_stop();
+		return;
+	}
+
 	switch (i) {
 	case 0: /* Samples */
 		sr_parse_sizestring(gtk_entry_get_text(timesamples), 
@@ -406,8 +411,6 @@ static void capture_run(GtkAction *action, GObject *parent)
 		g_critical("Failed to start session.");
 		return;
 	}
-
-	sr_session_run();
 }
 
 static void dev_file_open(GtkAction *action, GtkWindow *parent)
@@ -479,8 +482,6 @@ static const GtkActionEntry action_items[] = {
 		"Configure LA", G_CALLBACK(dev_set_options)},
 	{"DevProbes", GTK_STOCK_COLOR_PICKER, "_Probes", "<control>O",
 		"Configure Probes", G_CALLBACK(dev_set_probes)},
-	{"DevAcquire", GTK_STOCK_EXECUTE, "_Acquire", "<control>A",
-		"Acquire Samples", G_CALLBACK(capture_run)},
 	{"Exit", GTK_STOCK_QUIT, "E_xit", "<control>Q",
 		"Exit the program", G_CALLBACK(gtk_main_quit) },
 
@@ -503,6 +504,8 @@ static const GtkToggleActionEntry toggle_items[] = {
 	/* name, stock-id, label, accel, tooltip, callback, isactive */
 	{"ViewLog", GTK_STOCK_JUSTIFY_LEFT, "_Log", NULL, NULL,
 		G_CALLBACK(toggle_log), FALSE},
+	{"DevAcquire", GTK_STOCK_EXECUTE, "_Acquire", "<control>A",
+		"Acquire Samples", G_CALLBACK(capture_run), FALSE},
 };
 
 static const char ui_xml[] =
@@ -550,11 +553,20 @@ static const char ui_xml[] =
 "  </toolbar>"
 "</ui>";
 
+static GtkActionGroup *ag;
+
+void capture_done(void)
+{
+	GtkToggleAction *action;
+	action = (GtkToggleAction *)gtk_action_group_get_action(ag, "DevAcquire");
+	gtk_toggle_action_set_active(action, FALSE);
+}
+
 GtkWidget *toolbar_init(GtkWindow *parent)
 {
 	GtkWidget *vbox = gtk_vbox_new(FALSE, 0);
 	GtkToolbar *toolbar;
-	GtkActionGroup *ag = gtk_action_group_new("Actions");
+	ag = gtk_action_group_new("Actions");
 	gtk_action_group_add_actions(ag, action_items,
 					G_N_ELEMENTS(action_items), parent);
 	gtk_action_group_add_toggle_actions(ag, toggle_items,

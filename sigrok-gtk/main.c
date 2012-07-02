@@ -54,6 +54,7 @@ datafeed_in(struct sr_dev *dev, struct sr_datafeed_packet *packet)
 		sigview_zoom(sigview, 1, 0);
 		g_message("fe: Received SR_DF_END");
 		sr_session_stop();
+		capture_done();
 		break;
 	case SR_DF_TRIGGER:
 		g_message("fe: received SR_DF_TRIGGER");
@@ -99,6 +100,7 @@ datafeed_in(struct sr_dev *dev, struct sr_datafeed_packet *packet)
 
 		g_array_append_vals(data, filter_out, filter_out_len/unitsize);
 
+		sigview_zoom(sigview, 1, 0);
 		g_free(filter_out);
 		break;
 	default:
@@ -134,6 +136,7 @@ int main(int argc, char **argv)
 	icons_register();
 	sr_init();
 	sr_session_new();
+	sr_session_attach(NULL);
 	sr_session_datafeed_callback_add(datafeed_in);
 
 	window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
